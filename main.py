@@ -72,3 +72,16 @@ def shortest_steps_to_square1():
 # build once at import time so the heuristic is just an array lookup later (fast)
 # each slot answers: "how many moves along edges from this cell to square 1?"
 DISTANCE_LOOKUP_TO_SQUARE1 = shortest_steps_to_square1()
+
+class Problem:
+    # prob. class bundles everything specific to trench puzzle:
+    # (start layout, goal layout, successor generator, & heuristic wrapper)
+
+    def __init__(self, initial_state, goal_state):
+        # store immutable tuples because search compares states and hashes them
+        self.initial_state = to_board(initial_state)
+        self.goal_state = to_board(goal_state)
+
+    def is_goal(self, board):
+        # goal test from pseudocode: literally compare full states
+        return board == self.goal_state
