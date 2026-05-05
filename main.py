@@ -68,3 +68,7 @@ def shortest_steps_to_square1():
                 cells_waiting.append(neighbor_cell)
 
     return shortest_hops
+
+# build once at import time so the heuristic is just an array lookup later (fast)
+# each slot answers: "how many moves along edges from this cell to square 1?"
+DISTANCE_LOOKUP_TO_SQUARE1 = shortest_steps_to_square1()
