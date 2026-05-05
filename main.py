@@ -46,3 +46,25 @@ NEIGHBORS = [
     [5],  # pos 12 (pocket) -> only 6
     [7],  # pos 13 (pocket) -> only 8
 ]
+
+def shortest_steps_to_square1():
+    # A* needs a cheap guess h(n), "Manhattan on the graph" idea:
+    # real Manhattan needs rows/cols; here the trench is a weird shape so we use BFS
+    # shortest_hops[index] == minimum edges from that cell down to square 1 (cell index 0)
+    # -1 means "not visited yet in this BFS"
+    shortest_hops = [-1] * NUM_BOARD_CELLS  
+    # square 1 is distance 0 from itself
+    shortest_hops[0] = 0  
+    # breadth-first queue of cell indexes
+    cells_waiting = deque([0])  
+
+    while len(cells_waiting) > 0:
+        # classic FIFO queue behavior for breadth-first
+        current_cell = cells_waiting.popleft()  
+        for neighbor_cell in NEIGHBORS[current_cell]:
+            # first time we touch this neighbor we found shortest hop count in this tree-ish graph
+            if shortest_hops[neighbor_cell] == -1:
+                shortest_hops[neighbor_cell] = shortest_hops[current_cell] + 1
+                cells_waiting.append(neighbor_cell)
+
+    return shortest_hops
