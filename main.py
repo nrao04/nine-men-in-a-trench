@@ -110,3 +110,13 @@ class Problem:
                 # numbers shown as worksheet positions (add +1 because Python indexes from 0)
                 move_label = str(neighbor_cell_index + 1) + "->" + str(empty_cell_index + 1)
                 yield to_board(next_board_list), move_label
+    
+    def h_sergeant_to_square1(self, board):
+        # Heuristic h(n): estimate moves needed focusing on the sergeant (piece labeled 1).
+        # DISTANCE_LOOKUP_TO_SQUARE1 tells how many edges away each square is from square 1.
+        # scan for wherever token 1 sits and read off that distance table entry.
+        for cell_index in range(NUM_BOARD_CELLS):
+            if board[cell_index] == 1:
+                return DISTANCE_LOOKUP_TO_SQUARE1[cell_index]
+        # puzzle definition guarantees man 1 exists, so this line is just defensive coding
+        return math.inf
