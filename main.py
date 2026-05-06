@@ -85,3 +85,28 @@ class Problem:
     def is_goal(self, board):
         # goal test from pseudocode: literally compare full states
         return board == self.goal_state
+    
+    def neighbors(self, board):
+        # same swap trick here except neighbors come from NEIGHBORS[] instead of grid math
+        # we iterate every empty slot on the board (there are four zeros total).
+        # each adjacent numbered man can slide into that empty -> one new board state.
+        for empty_cell_index in range(NUM_BOARD_CELLS):
+            if board[empty_cell_index] != 0:
+                continue  # not blank; skip
+            for neighbor_cell_index in NEIGHBORS[empty_cell_index]:
+                neighbor_piece = board[neighbor_cell_index]
+                if neighbor_piece == 0:
+                    continue  # neighbor is also empty -> no tile to push into blank
+
+                # copy into a fresh list so we do not mutate the parent board by accident
+                next_board_list = list(board)
+                # swap blank square with chosen man -> he lands on empty_cell_index
+                next_board_list[empty_cell_index], next_board_list[neighbor_cell_index] = (
+                    next_board_list[neighbor_cell_index],
+                    next_board_list[empty_cell_index],
+                )
+
+                # edge label for debugging & printing solution path
+                # numbers shown as worksheet positions (add +1 because Python indexes from 0)
+                move_label = str(neighbor_cell_index + 1) + "->" + str(empty_cell_index + 1)
+                yield to_board(next_board_list), move_label
