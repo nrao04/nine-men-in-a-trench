@@ -18,7 +18,7 @@ def show(board):
     # first line = main trench only
     trench_symbols = []
     for cell_index in range(10):
-        cell_value = board[i]
+        cell_value = board[cell_index]
         # 0 means empty square, letter b matches the old 8 puzzle blank printing style
         trench_symbols.append("b" if cell_value == 0 else str(cell_value))
     # second line = the three pocket squares only
@@ -190,3 +190,4 @@ def print_step(node, path_cost, heuristic_value=None, greedy_tag=False):
     # first expansion usually skips this extra line so output mirrors Keogh sample traces
     if path_cost != 0:
         print("Expanding this node...")
+        
