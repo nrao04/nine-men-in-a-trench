@@ -51,7 +51,7 @@ NEIGHBORS = [
 
 def shortest_steps_to_square1():
     # A* needs a cheap guess h(n), "Manhattan on the graph" idea:
-    # real Manhattan needs rows/cols; here the trench is a weird shape so we use BFS
+    # real Manhattan needs rows/cols, here the trench is a weird shape so we use BFS
     # shortest_hops[index] == minimum edges from that cell down to square 1 (cell index 0)
     # -1 means "not visited yet in this BFS"
     shortest_hops = [-1] * NUM_BOARD_CELLS  
@@ -155,3 +155,38 @@ class Tree:
         # walking backwards puts moves newest-first, assignment wants start -> goal order
         steps.reverse()
         return steps
+
+# print helper funct. to avoid duplicate code
+# (going to impl. search alg. later)
+def print_step(node, path_cost, heuristic_value=None, greedy_tag=False):
+    # UCS passes no heuristic -> heuristic_value stays None.
+    # A* passes real h(n).
+    # greedy_tag tweaks wording because greedy ranks nodes differently than A*
+    # print the step with the path cost and heuristic value
+    if greedy_tag and path_cost == 0:
+        print("Expanding state (Greedy: only looks at h)")
+    # if the greedy tag is true, print the best greedy state with the path cost and heuristic value
+    elif greedy_tag:
+        print(
+            "The best Greedy state with g(n) = "
+            + str(path_cost)
+            + " and h(n) = "
+            + str(heuristic_value)
+            + " is..."
+        )
+    elif path_cost == 0:
+        print("Expanding state")  # starting board print matches textbook trace examples
+    elif heuristic_value is None:
+        print("The best state to expand with g(n) = " + str(path_cost) + " is...")
+    else:
+        print(
+            "The best state to expand with g(n) = "
+            + str(path_cost)
+            + " and h(n) = "
+            + str(heuristic_value)
+            + " is..."
+        )
+    show(node.board)
+    # first expansion usually skips this extra line so output mirrors Keogh sample traces
+    if path_cost != 0:
+        print("Expanding this node...")
