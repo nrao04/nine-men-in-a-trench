@@ -120,3 +120,16 @@ class Problem:
                 return DISTANCE_LOOKUP_TO_SQUARE1[cell_index]
         # puzzle definition guarantees man 1 exists, so this line is just defensive coding
         return math.inf
+    
+class Node:
+    # mirrors the old eight puzzle Node idea:
+    # board -> current layout
+    # cost -> depth / path cost g(n) counted as number of moves so far
+    # parent -> who spawned this node so we can reconstruct actions later
+    # action -> last edge label from parent -> child
+
+    def __init__(self, board, cost, parent, action):
+        self.board = board
+        self.cost = cost  # g(n)
+        self.parent = parent
+        self.action = action
