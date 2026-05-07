@@ -5,6 +5,8 @@ from collections import deque
 # there are 13 spots total: (1..10 is the long trench & 11..13 are the three side pockets)
 NUM_BOARD_CELLS = 13
 
+# helper functions for the puzzle
+
 def to_board(cells):
     # lists can change in place, but tuples cannot. search uses a set() of visited boards,
     # and tuples are hashable so they work inside that set.
@@ -28,7 +30,7 @@ def show(board):
     print("Recesses (11-13):", " ".join(pocket_symbols))
 
 # static map of the trench + pockets.
-# list index == python cell id (0-based), each inner list is other cells you can walk to in 1 move.
+# list index is python cell id (0-based), so each inner list is other cells you can walk to in 1 move.
 # we hardcode the graph so the reader sees the map without running any setup code.
 # (one graph edge = one action in the search tree)
 NEIGHBORS = [
@@ -133,3 +135,23 @@ class Node:
         self.cost = cost  # g(n)
         self.parent = parent
         self.action = action
+        
+class Tree:
+    # creating a wrapper here so ucs & astar read better like sample driver code
+    def __init__(self, root_board):
+        # root has cost zero and no parent yet
+        self.root = Node(root_board, 0, None, "")
+
+    # helper function to get the path from the goal node to the root node
+    @staticmethod
+    def path(goal_node):
+        # rebuilding solution sequence by crawling parents from goal back toward root
+        steps = []
+        trace_node = goal_node
+        while trace_node is not None and trace_node.action != "":
+            # append the action to the steps list
+            steps.append(trace_node.action)
+            trace_node = trace_node.parent
+        # walking backwards puts moves newest-first, assignment wants start -> goal order
+        steps.reverse()
+        return steps
