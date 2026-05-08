@@ -191,3 +191,52 @@ def print_step(node, path_cost, heuristic_value=None, greedy_tag=False):
     if path_cost != 0:
         print("Expanding this node...")
         
+
+def ucs(problem):
+    # uniform cost -> always pop the node with smallest g first
+    # (identical to A* if you forced h=0 every time)
+    # priority tuple is (g, counter, node) so smaller g leaves the queue first
+
+    frontier = queue.PriorityQueue()
+    tie_breaker = 0
+    # python breaks priority ties by comparing the next tuple item, so pure ints avoid TypeError
+    # we bump tie_breaker so two equal priorities never try to compare Node objects
+
+    start_node = Tree(problem.initial_state).root
+    frontier.put((0, tie_breaker, start_node))
+
+    explored = set()  # closed set / visited list
+    expanded_count = 0
+    max_queue_size = 1  # project handout sometimes wants "max nodes in queue" stat
+
+    # while the frontier is not empty, get the best partial path
+    while not frontier.empty():
+        # pop best partial path
+        uniform_cost_priority, tie_counter, current_node = frontier.get()  
+
+        if current_node.board in explored:
+            continue  # already fully processed this board layout
+        explored.add(current_node.board)
+
+        print_step(current_node, uniform_cost_priority)
+        
+        # if the current node is the goal, return the path cost, the expanded count, the max queue size, the current node cost, and the path from the goal node to the root node
+        if problem.is_goal(current_node.board):
+            return True, expanded_count, max_queue_size, current_node.cost, Tree.path(current_node)
+
+        expanded_count += 1
+        child_path_cost = current_node.cost + 1  # every operator costs exactly one hop here
+
+        # for each successor board, add the board to the frontier
+        for successor_board, move_label in problem.neighbors(current_node.board):
+            # referencing eight puzzle driver logic, skip pushing duplicates already expanded
+            if successor_board not in explored:
+                tie_breaker += 1
+                frontier.put(
+                    (child_path_cost, tie_breaker, Node(successor_board, child_path_cost, current_node, move_label))
+                )
+
+        max_queue_size = max(max_queue_size, frontier.qsize())
+
+    return False, expanded_count, max_queue_size, None, []
+
