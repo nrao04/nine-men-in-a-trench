@@ -268,7 +268,7 @@ def astar(problem, heuristic):
 
         # get the heuristic value at the current node
         heuristic_at_node = heuristic(current_node.board)  # recompute h for the trace printout
-        _print_step(current_node, path_cost_so_far, heuristic_at_node)
+        print_step(current_node, path_cost_so_far, heuristic_at_node)
 
         if problem.is_goal(current_node.board):
             return True, expanded_count, max_queue_size, current_node.cost, Tree.path(current_node)
@@ -373,3 +373,93 @@ def read_board():
         print("Invalid board")
         return None
     return cells
+
+def main():
+    
+    # hard coded layout
+    # classic diagram start from Dudeney story:
+    # blank at square 1, men 2..9 lined up, sergeant (#1) parked way down at square 10,
+    # pockets 11-13 empty at first.
+    standard_initial = [0, 2, 3, 4, 5, 6, 7, 8, 9, 1, 0, 0, 0]
+   
+    # victory picture:
+    # sergeant standing at square 1, teammates restored left-to-right, hole relocates to square 10,
+    # pockets empty again.
+    goal_state = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0]
+
+    # menu pairs readable english labels with the python lists backing each scenario
+    preset_choices = [
+        ("Goal state (already solved)", list(goal_state)),
+        ("Classic Dudeney start (hard case)", list(standard_initial)),
+        ("One move from goal (easy test)", [1, 2, 3, 4, 5, 6, 7, 8, 0, 9, 0, 0, 0]),
+    ]
+
+    print("---------------------------------------------------------------")
+    print("Welcome to Nine Men in a Trench solver by Nikhil Rao.")
+    print('Type "1" to use a default puzzle, or "2" to enter your own puzzle.')
+
+    menu_choice = input().strip()
+    if menu_choice == "1":
+        # branch #1: pull starter boards out of preset_choices instead of typing digits manually
+        print("Choose a preset:")
+        for preset_menu_index in range(1, len(preset_choices) + 1):
+            label = preset_choices[preset_menu_index - 1][0]
+            print("     " + str(preset_menu_index) + ": " + label)
+        try:
+            pick = int(input().strip())
+            initial_state = preset_choices[pick - 1][1]
+        except Exception:
+            print("Invalid choice")
+            return
+    elif menu_choice == "2":
+        # branch #2: user-supplied board typed all at once on one row
+        custom_board = read_board()
+        if custom_board is None:
+            return
+        initial_state = custom_board
+    else:
+        print("Invalid option")
+        return
+
+    puzzle = Problem(initial_state, goal_state)
+
+    print("Enter your choice of algorithm")
+    print("    1. Uniform Cost Search")
+    print("    2. A* with sergeant-to-square-1 distance as h(n)")
+    print("    3. Greedy best-first (same h, but only looks at h when picking the next node)")
+
+    algorithm_choice = input().strip()
+    if algorithm_choice == "1":
+        solution_found, expanded_count, max_queue_size, solution_depth, move_sequence = ucs(puzzle)
+    elif algorithm_choice == "2":
+        solution_found, expanded_count, max_queue_size, solution_depth, move_sequence = astar(
+            puzzle, puzzle.h_sergeant_to_square1
+        )
+    elif algorithm_choice == "3":
+        solution_found, expanded_count, max_queue_size, solution_depth, move_sequence = greedy_best_first(
+            puzzle, puzzle.h_sergeant_to_square1
+        )
+    else:
+        print("Invalid algorithm choice")
+        return
+
+    # reporting block mirrors grading checklist wording
+    if solution_found:
+        print("Goal!!!")
+        print(
+            "To solve this problem the search algorithm expanded a total of "
+            + str(expanded_count)
+            + " nodes."
+        )
+        print("The maximum number of nodes in the queue at any one time: " + str(max_queue_size) + ".")
+        print("The depth of the goal node was " + str(solution_depth) + ".")
+        if len(move_sequence) > 0:
+            print("Move sequence (" + str(len(move_sequence)) + "): " + " ".join(move_sequence))
+    else:
+        print("Goal state not found.")
+        print("The search algorithm expanded a total of " + str(expanded_count) + " nodes.")
+        print("The maximum number of nodes in the queue was: " + str(max_queue_size) + ".")
+
+
+if __name__ == "__main__":
+    main()
