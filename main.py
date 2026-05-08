@@ -240,3 +240,54 @@ def ucs(problem):
 
     return False, expanded_count, max_queue_size, None, []
 
+def astar(problem, heuristic):
+    # classic A* from slides: f(n) = g(n) + h(n)
+    #   g = real steps taken
+    #   h = our guess (here: how many graph edges the sergeant still needs)
+    # queue orders by f so hopefully we hit the goal after fewer expansions than raw UCS
+    # tuple layout matches the class example: (f, g, tie, node) so we still know g when printing
+
+    frontier = queue.PriorityQueue()
+    tie_breaker = 0
+
+    start_node = Tree(problem.initial_state).root
+    # at the start, g=0 so f(0) = 0 + h(start) == h(start)
+    frontier.put((heuristic(start_node.board), 0, tie_breaker, start_node))
+
+    explored = set()
+    expanded_count = 0
+    max_queue_size = 1
+
+    # while the frontier is not empty, get the best partial path
+    while not frontier.empty():
+        astar_priority_f, path_cost_so_far, tie_counter, current_node = frontier.get()  # lowest f first
+
+        if current_node.board in explored:
+            continue
+        explored.add(current_node.board)
+
+        # get the heuristic value at the current node
+        heuristic_at_node = heuristic(current_node.board)  # recompute h for the trace printout
+        _print_step(current_node, path_cost_so_far, heuristic_at_node)
+
+        if problem.is_goal(current_node.board):
+            return True, expanded_count, max_queue_size, current_node.cost, Tree.path(current_node)
+
+        expanded_count += 1
+        child_path_cost = current_node.cost + 1
+
+        # for each successor board, add the board to the frontier
+        for successor_board, move_label in problem.neighbors(current_node.board):
+            if successor_board in explored:
+                continue
+            # create a new node with the successor board, the child path cost, the current node, and the move label
+            child_node = Node(successor_board, child_path_cost, current_node, move_label)
+            tie_breaker += 1
+            # add the node to the frontier
+            total_estimated_cost = child_path_cost + heuristic(child_node.board)  # child g + child h
+            frontier.put((total_estimated_cost, child_path_cost, tie_breaker, child_node))
+
+        max_queue_size = max(max_queue_size, frontier.qsize())
+
+    return False, expanded_count, max_queue_size, None, []
+
