@@ -291,3 +291,85 @@ def astar(problem, heuristic):
 
     return False, expanded_count, max_queue_size, None, []
 
+def greedy_best_first(problem, heuristic):
+    # greedy best-first only cares how promising h looks right now.
+    # priority queue ranks purely by h(n); total cost so far g(n) is ignored for ordering.
+    # can explore fewer nodes sometimes BUT solution depth might not stay optimal.
+
+    frontier = queue.PriorityQueue()
+    tie_breaker = 0
+
+    # start the node with the initial state
+    start_node = Tree(problem.initial_state).root
+    frontier.put((heuristic(start_node.board), 0, tie_breaker, start_node))
+    # set the explored set to an empty set
+    explored = set()
+    # set the expanded count to 0
+    expanded_count = 0
+    # set the max queue size to 1
+    max_queue_size = 1
+
+    # while the frontier is not empty, get the best partial path
+    while not frontier.empty():
+        # get the best partial path
+        greedy_priority_h, path_cost_so_far, tie_counter, current_node = frontier.get()  # smallest h wins
+
+        if current_node.board in explored:
+            continue
+        explored.add(current_node.board)
+        # get the heuristic value at the current node
+        heuristic_at_node = heuristic(current_node.board)
+        print_step(current_node, path_cost_so_far, heuristic_at_node, greedy_tag=True)
+
+        if problem.is_goal(current_node.board):
+            return True, expanded_count, max_queue_size, current_node.cost, Tree.path(current_node)
+
+        # increment the expanded count
+        expanded_count += 1
+        child_path_cost = current_node.cost + 1
+        # for each successor board, add the board to the frontier
+        for successor_board, move_label in problem.neighbors(current_node.board):
+            # if the successor board is not in the explored set, add the board to the frontier
+            if successor_board in explored:
+                continue
+            # create a new node with the successor board, the child path cost, the current node, and the move label
+            child_node = Node(successor_board, child_path_cost, current_node, move_label)
+            tie_breaker += 1
+            # notice push uses only heuristic(child_node), not g + h
+            frontier.put((heuristic(child_node.board), child_path_cost, tie_breaker, child_node))
+
+        max_queue_size = max(max_queue_size, frontier.qsize())
+
+    return False, expanded_count, max_queue_size, None, []
+
+
+def valid_board(cells):
+    # quick sanity filter before running expensive search:
+    # must contain exactly four blanks (zeros) and digits 1 through 9 exactly once each.
+    # sorting makes duplicate detection trivial instead of hand-writing nested loops.
+    if len(cells) != NUM_BOARD_CELLS:
+        return False
+    return sorted(cells) == [0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+
+def read_board():
+    # interactive keyboard entry parallel to the eight puzzle "enter rows" flow,
+    # except trench assignment packs everything into one horizontal row for simplicity.
+    print("Enter the trench as 13 integers (position 1 first, then 2, ... 13). Use 0 for empty.")
+    try:
+        line = input().strip()
+        parts = line.split()  # spaces / tabs both okay thanks to split()
+        if len(parts) != NUM_BOARD_CELLS:
+            print("Wrong number of entries")
+            return None
+        cells = []
+        for word in parts:
+            cells.append(int(word))
+    except Exception:
+        print("Invalid row")
+        return None
+
+    if not valid_board(cells):
+        print("Invalid board")
+        return None
+    return cells
