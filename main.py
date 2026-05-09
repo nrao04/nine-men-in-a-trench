@@ -24,7 +24,7 @@ def show(board):
     # second line = the three pocket squares only
     pocket_symbols = []
     for cell_index in range(10, 13):
-        v = board[cell_index]
+        cell_value = board[cell_index]
         pocket_symbols.append("b" if cell_value == 0 else str(cell_value))
     print("Trench (1-10):", " ".join(trench_symbols))
     print("Recesses (11-13):", " ".join(pocket_symbols))
